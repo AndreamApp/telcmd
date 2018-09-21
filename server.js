@@ -26,10 +26,11 @@ app.get('/telcmd', function(req, res, next) {
 
 app.get('/flush', function(req, res, next) {
     var cmd = req.query.cmd;
-    res.json({
-        cmd_buffer: cmd_buffer
-    });
+    let buffer = cmd_buffer;
     cmd_buffer = [];
+    res.json({
+        cmd_buffer: buffer
+    });
 });
 
 // catch 404 and forward to error handler

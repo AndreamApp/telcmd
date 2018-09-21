@@ -6,7 +6,7 @@ let pages = {};
 async function exec(cmd) {
     let args = cmd.split(' ');
     console.log('exec:', cmd);
-    if('b' === args[0]){
+    if('p' === args[0]){
         if('nm' === args[1]){
             if('play' === args[2]){
                 await nm_search_play(args[3]);
@@ -53,14 +53,15 @@ async function new_page(name, intercept = true){
         browser = await puppeteer.launch({
             headless: false,
             // executablePath: 'D:/Program Files (x86)/Chromium/chrome.exe'
-            args: ['--no-sandbox']
+            args: ['--no-sandbox', '--start-fullscreen']
         });
     }
     if(!(name in pages)){
         pages[name] = await browser.newPage();
         if(intercept){
-            await interceptPage(pages[name]);
+            //await interceptPage(pages[name]);
         }
+        await pages[name].setViewport({ width: 1366, height: 666});
     }
     return pages[name];
 }
@@ -70,21 +71,22 @@ async function nm_search_play(song){
     await page.goto('https://music.163.com/#/search/m/?s=' + song);
     await page.frames()[1].waitForSelector('.srchsongst > div > div > div > .ply');
     await page.frames()[1].click('.srchsongst > div > div > div > .ply');
+    await page.frames()[0].click('[data-action=lock]');
 }
 
 async function nm_pause(){
     let page = await new_page('nm');
-    await page.frames()[1].click('#g_player > div.btns > .ply');
+    await page.frames()[0].click('#g_player > div.btns > .ply');
 }
 
 async function nm_next(){
     let page = await new_page('nm');
-    await page.frames()[1].click('#g_player > div.btns > .nxt');
+    await page.frames()[0].click('#g_player > div.btns > .nxt');
 }
 
 async function nm_prev(){
     let page = await new_page('nm');
-    await page.frames()[1].click('#g_player > div.btns > .prv');
+    await page.frames()[0].click('#g_player > div.btns > .prv');
 }
 
 async function nm_exit(){
