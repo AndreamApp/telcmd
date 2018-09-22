@@ -14,21 +14,23 @@ function get(url, callback){
     }, callback);
 }
 
-function telcmd(cmd){
-    get((host + '/telcmd?cmd=%s') % cmd, function (error, response, buf) {
+function telcmd(cmd, name){
+    get((host + '/telcmd?cmd=%s&name=%s') % (cmd, name), function (error, response, buf) {
     });
 }
 
-function flush(){
+// change name to your client name
+function flush(name = 'pc'){
     console.log('~');
-    get((host + '/flush'), async function (error, response, buf) {
+    get((host + '/flush?name=%s') % (name), async function (error, response, buf) {
         if(!buf) return;
         let json = new Buffer(buf).toString();
         let cmd_buffer = await JSON.parse(json)['cmd_buffer'];
         for(let i = 0; i < cmd_buffer.length; i++){
-            let cmd = cmd_buffer[i];
+            let item = cmd_buffer[i];
+            let cmd = item.cmd;
             if(cmd){
-                if(await build_in.exec(cmd)){
+                if(await build_in.exec(item)){
                     console.log('build-in: ', cmd);
                 }
                 else{
@@ -53,5 +55,11 @@ function deamon(){
     setInterval(flush, 3000);
 }
 
-deamon();
+if (require.main === module) {
+    deamon();
+}
 
+module.exports = {
+    telcmd: telcmd,
+    flush: flush
+};

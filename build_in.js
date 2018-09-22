@@ -1,9 +1,14 @@
 const puppeteer = require('puppeteer');
+const exec_native = require('child_process').exec;
+const telcmd = require('./client');
+const fs = require('fs');
 
 let browser = null;
 let pages = {};
 
-async function exec(cmd) {
+async function exec(item) {
+    let cmd = item.cmd;
+    let data = item.data;
     let args = cmd.split(' ');
     console.log('exec:', cmd);
     if('p' === args[0]){
@@ -28,6 +33,23 @@ async function exec(cmd) {
                 await nm_exit();
                 return true;
             }
+        }
+    }
+    else if('hexo' === args[0]){
+        await hexo(data);
+        return true;
+    }
+    else if('pull' === args[0]){
+        if('janny' === args[1]){
+            let pull = 'cd C:\\Users\\Andream\\Desktop\\src\\andreamapp && git pull';
+            exec_native(pull, function(err, stdout, stderr) {
+                console.log('----- pull janny blog -----');
+                console.log('stdout: %s' % stdout);
+            });
+            return true;
+        }
+        else{
+            return false;
         }
     }
     return false;
@@ -95,6 +117,32 @@ async function nm_exit(){
 	delete pages['nm'];
     await browser.close();
 	browser = null;
+}
+
+/*
+{
+    title: '',
+    content: ''
+}
+TODO: name & path abstract: by env variable? by conf?
+*/
+async function hexo(data){
+    exec_native('hexo new ' + data.title, function(err, stdout, stderr) {
+        console.log('----- new article -----');
+        console.log('stdout: %s' % stdout);
+        if(!err){
+            fs.appendFileSync('source/_posts/' + data.title + '.md', data.content);
+            console.log('----- write to file -----');
+            exec_native('janny_sync.sh', function(err, stdout, stderr) {
+                console.log('----- push to git pages -----');
+                console.log('stdout: %s' % stdout);
+                if(!err){
+                    telcmd.telcmd('pull janny', 'pc');
+                    console.log('----- call client to pull -----');
+                }
+            });
+        }
+    });
 }
 
 module.exports = {

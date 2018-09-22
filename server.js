@@ -16,20 +16,34 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-var cmd_buffer = [];
+let cmd_buffer = [];
 
 app.get('/telcmd', function(req, res, next) {
-    var cmd = req.query.cmd;
-    cmd_buffer.push(cmd);
+    let cmd = req.query.cmd;
+    let name = req.query.name;
+    cmd_buffer.push({
+        cmd: cmd,
+        name: name,
+        data: ''
+    });
     res.end('');
 });
 
 app.get('/flush', function(req, res, next) {
-    var cmd = req.query.cmd;
-    let buffer = cmd_buffer;
-    cmd_buffer = [];
+    let flushed = [];
+    let remained = [];
+    let name = req.query.name;
+    for(let item in cmd_buffer){
+        if(item.name === name) {
+            flushed.push(item);
+        }
+        else{
+            remained.push(item);
+        }
+    }
+    cmd_buffer = remained;
     res.json({
-        cmd_buffer: buffer
+        cmd_buffer: flushed
     });
 });
 
