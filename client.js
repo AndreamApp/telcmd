@@ -15,14 +15,14 @@ function get(url, callback){
 }
 
 function telcmd(cmd, name){
-    get((host + '/telcmd?cmd=%s&name=%s') % (cmd, name), function (error, response, buf) {
+    get(host + '/telcmd?cmd=' + cmd + '&name=' + name, function (error, response, buf) {
     });
 }
 
 // change name to your client name
 function flush(name = 'pc'){
     console.log('~');
-    get((host + '/flush?name=%s') % (name), async function (error, response, buf) {
+    get(host + '/flush?name=' + name, async function (error, response, buf) {
         if(!buf) return;
         let json = new Buffer(buf).toString();
         let cmd_buffer = await JSON.parse(json)['cmd_buffer'];

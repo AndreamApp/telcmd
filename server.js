@@ -21,10 +21,23 @@ let cmd_buffer = [];
 app.get('/telcmd', function(req, res, next) {
     let cmd = req.query.cmd;
     let name = req.query.name;
+    let data = req.query.data;
     cmd_buffer.push({
         cmd: cmd,
         name: name,
-        data: ''
+        data: data
+    });
+    res.end('');
+});
+
+app.post('/telcmd', function(req, res, next) {
+    let cmd = req.body.cmd;
+    let name = req.body.name;
+    let data = req.body.data;
+    cmd_buffer.push({
+        cmd: cmd,
+        name: name,
+        data: data
     });
     res.end('');
 });
@@ -33,7 +46,8 @@ app.get('/flush', function(req, res, next) {
     let flushed = [];
     let remained = [];
     let name = req.query.name;
-    for(let item in cmd_buffer){
+    for(let i = 0; i < cmd_buffer.length; i++){
+        let item = cmd_buffer[i];
         if(item.name === name) {
             flushed.push(item);
         }
