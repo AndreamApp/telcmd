@@ -75,7 +75,8 @@ app.get('/host', function(req, res, next) {
 app.post('/result', function(req, res, next) {
     if(req.body) {
         res_buffer.push(req.body);
-        fs.appendFileSync('results.json', JSON.stringify(req.body. null, 4));
+        console.log(req.body);
+        fs.appendFileSync('results.json', JSON.stringify(req.body. null, 4) + '\n');
     }
     res.end('');
 });
