@@ -11,28 +11,26 @@ async function exec(item) {
     let data = item.data;
     let args = cmd.split(' ');
     console.log('exec:', cmd);
-    if('p' === args[0]){
-        if('nm' === args[1]){
-            if('play' === args[2]){
-                await nm_search_play(args[3]);
-                return true;
-            }
-            else if('pause' === args[2]){
-                await nm_pause();
-                return true;
-            }
-            else if('next' === args[2]){
-                await nm_next();
-                return true;
-            }
-            else if('prev' === args[2]){
-                await nm_prev();
-                return true;
-            }
-            else if('exit' === args[2]){
-                await nm_exit();
-                return true;
-            }
+    if('nm' === args[0]){
+        if('play' === args[1]){
+            await nm_search_play(args[2]);
+            return true;
+        }
+        else if('pause' === args[1]){
+            await nm_pause();
+            return true;
+        }
+        else if('next' === args[1]){
+            await nm_next();
+            return true;
+        }
+        else if('prev' === args[1]){
+            await nm_prev();
+            return true;
+        }
+        else if('exit' === args[1]){
+            await nm_exit();
+            return true;
         }
     }
     else if('hexo' === args[0]){

@@ -61,6 +61,10 @@ app.get('/flush', function(req, res, next) {
     });
 });
 
+app.get('/host', function(req, res, next) {
+    res.send('http://45.32.41.191:81');
+});
+
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
   next(createError(404));

