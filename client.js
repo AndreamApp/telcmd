@@ -7,7 +7,7 @@ const fs = require('fs');
 let host = 'http://45.32.41.191:81';
 let name = 'pc';
 const openLink = false;
-const DEBUG = true;
+const DEBUG = false;
 
 function initHost() {
     if(fs.existsSync('host')) {
@@ -102,12 +102,6 @@ function resetHost() {
             host = newHost;
             fs.writeFileSync('host', host);
         }
-    });
-}
-
-function updateCode() {
-    exec('git pull', function(err, stdout, stderr) {
-        console.log('update code: %s' % stdout);
     });
 }
 
