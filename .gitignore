@@ -65,4 +65,5 @@ host
 name
 password
 results.json
-deamon
+daemon
+daemon/*

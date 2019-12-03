@@ -1,1 +1,1 @@
-CreateObject("Wscript.Shell").Run "forever start client.js", 0
+CreateObject("Wscript.Shell").Run "forever -s start client.js", 0

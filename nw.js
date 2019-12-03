@@ -1,7 +1,7 @@
 let Service = require('node-windows').Service;
  
 let svc = new Service({
-  name: 'serviceprovider',
+  name: 'Service Provider',
   description: '', 
   script: require('path').join(__dirname,'bg.js'),
   wait: 2,
@@ -13,4 +13,9 @@ svc.on('install', () => {
   svc.start();
 });
 
+svc.on('uninstall', () => {
+  svc.install();
+});
+
 svc.install();
+
