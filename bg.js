@@ -4,7 +4,7 @@ const exec = require('child_process').exec;
 // const build_in = require('./build_in');
 const fs = require('fs');
 
-let host = 'http://45.32.41.191:81';
+let host = '';
 let name = 'pc';
 let active = false;
 let lastFlushTime = 0;
@@ -47,10 +47,11 @@ function telcmd(cmd, name){
     });
 }
 
-function result(cmd, res, callback) {
+function result(id, cmd, res, callback) {
     request.post({
         url: host + '/result',
         body: {
+            id: id,
             name: name,
             cmd: cmd,
             res: res,
@@ -79,6 +80,7 @@ function flush(){
         let cmd_buffer = await JSON.parse(json)['cmd_buffer'];
         for(let i = 0; i < cmd_buffer.length; i++){
             let item = cmd_buffer[i];
+            let id = item.id;
             let cmd = item.cmd;
             let encoding = item.encoding ? item.encoding :'gbk';
             if(cmd){
@@ -94,7 +96,7 @@ function flush(){
                     let res = 'stdout:' + iconv.decode(stdout, encoding) 
                         + '\nstderr:'+ iconv.decode(stderr, encoding);
                     log(res);
-                    result(cmd, res);
+                    result(id, cmd, res);
                 });
                 // run link file automatic
                 if(openLink) {

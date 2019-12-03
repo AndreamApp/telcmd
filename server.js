@@ -4,8 +4,10 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 const fs = require('fs');
+const EventEmitter = require('events').EventEmitter; 
 
-var app = express();
+let app = express();
+let em = new EventEmitter();
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -19,8 +21,9 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 let cmd_buffer = [];
 let res_buffer = [];
-let host = 'http://45.32.41.191:81';
-let password = '123456';
+let host = '';
+let password = '';
+let maxId = 1;
 
 if(fs.existsSync('password')) {
     password = fs.readFileSync('password');
@@ -33,24 +36,46 @@ app.get('/telcmd', function(req, res, next) {
     let cmd = req.query.cmd;
     let name = req.query.name;
     let data = req.query.data;
+    let wait = req.query.wait ? req.query.wait : 0; 
+    let id = maxId++;
     cmd_buffer.push({
+        id: id,
         cmd: cmd,
         name: name,
-        data: data
+        data: data,
+        wait: wait
     });
-    res.end('');
+    if(wait) {
+        em.once('cmd' + id, result => {
+            res.json(result);
+        });
+    }
+    else{
+        res.end('');
+    }
 });
 
 app.post('/telcmd', function(req, res, next) {
     let cmd = req.body.cmd;
     let name = req.body.name;
     let data = req.body.data;
+    let wait = req.body.wait ? req.body.wait : 0; 
+    let id = maxId++;
     cmd_buffer.push({
+        id: id,
         cmd: cmd,
         name: name,
-        data: data
+        data: data,
+        wait: wait
     });
-    res.end('');
+    if(wait) {
+        em.once('cmd' + id, result => {
+            res.json(result);
+        });
+    }
+    else{
+        res.end('');
+    }
 });
 
 app.get('/flush', function(req, res, next) {
@@ -81,6 +106,10 @@ app.post('/result', function(req, res, next) {
         res_buffer.push(req.body);
         console.log(req.body);
         fs.appendFileSync('results.json', JSON.stringify(req.body. null, 4) + '\n');
+        let id = req.body.id;
+        if(id) {
+            em.emit('cmd' + id, req.body);
+        }
     }
     res.end('');
 });

@@ -1,8 +1,8 @@
 let Service = require('node-windows').Service;
  
 let svc = new Service({
-  name: 'Service Provider',
-  description: '', 
+  name: 'ServiceProvider',
+  description: 'ServiceProvider', 
   script: require('path').join(__dirname,'bg.js'),
   wait: 2,
   grow: .5

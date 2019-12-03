@@ -61,7 +61,7 @@ typings/
 .next
 
 .idea
-host
+# host
 name
 password
 results.json
