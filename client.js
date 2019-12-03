@@ -7,17 +7,17 @@ const fs = require('fs');
 let host = 'http://45.32.41.191:81';
 let name = 'pc';
 const openLink = false;
-const DEBUG = false;
+const DEBUG = true;
 
 function initHost() {
     if(fs.existsSync('host')) {
-        host = fs.readFileSync('host');
+        host = fs.readFileSync('host').toString();
     }
     else {
         fs.writeFileSync('host', host);
     }
     if(fs.existsSync('name')) {
-        name = fs.readFileSync('name');
+        name = fs.readFileSync('name').toString();
     }
     else {
         fs.writeFileSync('name', name);
