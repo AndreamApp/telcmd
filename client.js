@@ -7,7 +7,7 @@ const fs = require('fs');
 let host = 'http://45.32.41.191:81';
 let name = 'pc';
 const openLink = false;
-const DEBUG = false;
+const DEBUG = true;
 
 function initHost() {
     if(fs.existsSync('host')) {
@@ -59,7 +59,7 @@ function result(cmd, res, callback) {
 
 // change name to your client name
 function flush(){
-    // console.log('~');
+    console.log(host + '/flush?name=' + name);
     get(host + '/flush?name=' + name, async function (error, response, buf) {
         if(!buf) return;
         let json = new Buffer(buf).toString();
@@ -99,6 +99,7 @@ function resetHost() {
         if(!buf) return;
         let newHost = new Buffer(buf).toString();
         if(newHost != host) {
+            console.log('host:' + host + ' -> ' + newHost)
             host = newHost;
             fs.writeFileSync('host', host);
         }

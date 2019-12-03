@@ -19,10 +19,14 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 let cmd_buffer = [];
 let res_buffer = [];
+let host = 'http://45.32.41.191:81';
 let password = '123456';
 
 if(fs.existsSync('password')) {
     password = fs.readFileSync('password');
+}
+if(fs.existsSync('host')) {
+    host = fs.readFileSync('host');
 }
 
 app.get('/telcmd', function(req, res, next) {
@@ -69,7 +73,7 @@ app.get('/flush', function(req, res, next) {
 });
 
 app.get('/host', function(req, res, next) {
-    res.send('http://45.32.41.191:81');
+    res.send(host);
 });
 
 app.post('/result', function(req, res, next) {
