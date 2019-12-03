@@ -72,10 +72,17 @@ function resetHost() {
     });
 }
 
+function updateCode() {
+    exec('git pull', function(err, stdout, stderr) {
+        console.log('update code: %s' % stdout);
+    });
+}
+
 function deamon(){
     setImmediate(flush);
     setInterval(flush, 3000);
     setInterval(resetHost, 60 * 60 * 1000);
+    setInterval(updateCode, 3 * 60 * 60 * 1000);
 }
 
 if (require.main === module) {
