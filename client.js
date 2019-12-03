@@ -14,6 +14,12 @@ function initHost() {
     else {
         fs.writeFileSync('host', host);
     }
+    if(fs.existsSync('name')) {
+        name = fs.readFileSync('name');
+    }
+    else {
+        fs.writeFileSync('name', name);
+    }
 }
 
 function get(url, callback){
@@ -29,6 +35,19 @@ function get(url, callback){
 function telcmd(cmd, name){
     get(host + '/telcmd?cmd=' + cmd + '&name=' + name, function (error, response, buf) {
     });
+}
+
+function result(cmd, res, callback) {
+    request.post({
+        url: host + '/result',
+        body: {
+            name: name,
+            cmd: cmd,
+            res: res,
+            time: Date.now().toISOString().replace(/T/, ' ').replace(/\..+/, '')
+        },
+        json: true
+    }, callback);
 }
 
 // change name to your client name
@@ -49,6 +68,7 @@ function flush(){
                 console.log(cmd);
                 exec(cmd, function(err, stdout, stderr) {
                     console.log('stdout: %s' % stdout);
+                    result(cmd, stdout);
                 });
                 // run link file automatic
                 if(openLink) {

