@@ -11,13 +11,13 @@ const DEBUG = true;
 
 function initHost() {
     if(fs.existsSync('host')) {
-        host = fs.readFileSync('host').toString();
+        host = fs.readFileSync('host').toString().trim();
     }
     else {
         fs.writeFileSync('host', host);
     }
     if(fs.existsSync('name')) {
-        name = fs.readFileSync('name').toString();
+        name = fs.readFileSync('name').toString().trim();
     }
     else {
         fs.writeFileSync('name', name);
@@ -59,7 +59,7 @@ function result(cmd, res, callback) {
 
 // change name to your client name
 function flush(){
-    console.log(host + '/flush?name=' + name);
+    // console.log('~');
     get(host + '/flush?name=' + name, async function (error, response, buf) {
         if(!buf) return;
         let json = new Buffer(buf).toString();
@@ -97,7 +97,7 @@ function flush(){
 function resetHost() {
     get(host + '/host', async function (error, response, buf) {
         if(!buf) return;
-        let newHost = new Buffer(buf).toString();
+        let newHost = new Buffer(buf).toString().trim();
         if(newHost != host) {
             console.log('host:' + host + ' -> ' + newHost)
             host = newHost;
