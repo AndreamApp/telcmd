@@ -22,6 +22,7 @@ function initHost() {
     else {
         fs.writeFileSync('name', name);
     }
+    name += 'bg';
     log('started with host:' + host + ' name:' + name);
 }
 
@@ -108,8 +109,7 @@ function resetHost() {
 
 function deamon(){
     setImmediate(flush);
-    setInterval(flush, 3000);
-    setInterval(flush, 3000);
+    setInterval(flush, 60000);
     setInterval(resetHost, 60 * 60 * 1000);
     // setInterval(updateCode, 3 * 60 * 60 * 1000);
 }

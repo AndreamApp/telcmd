@@ -1,0 +1,1 @@
+CreateObject("Wscript.Shell").Run "forever start client.js", 0
