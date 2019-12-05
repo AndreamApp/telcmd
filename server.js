@@ -13,7 +13,7 @@ let em = new EventEmitter();
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
 
-app.use(logger('dev'));
+app.use(logger(':date[iso] :remote-addr :method :status :url\t:res[content-length]\t - :response-time ms'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
