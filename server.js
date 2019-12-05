@@ -117,7 +117,7 @@ app.post('/result', function(req, res, next) {
     if(req.body) {
         res_buffer.push(req.body);
         console.log(req.body);
-        fs.appendFileSync('results.json', JSON.stringify(req.body. null, 4) + '\n');
+        fs.appendFileSync('results.log', JSON.stringify(req.body. null, 4) + '\n');
         let id = req.body.id;
         if(id) {
             em.emit('cmd' + id, req.body);

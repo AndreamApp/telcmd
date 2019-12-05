@@ -87,10 +87,9 @@
                             // encoding: 'gbk'
                         },
                         function(data, status, xhr) {
-                            self.echo(data.res
-                                .replace('stdout:', '[[;white;]')
-                                .replace('stderr:', '[[b;red;]')
-                                + ']'
+                            self.echo(
+                                '[[;white;]' + data.stdout + ']\n' +
+                                '[[b;red;]' + data.stderr + ']'
                             );
                             console.log(data);
                             self.resume();
