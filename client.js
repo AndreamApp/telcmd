@@ -138,7 +138,6 @@ function flush(){
             let encoding = item.encoding ? item.encoding :'gbk';
             if(cmd){
                 log('> ' + cmd);
-                lastActiveTime = now;
                 // remove useless build_in
                 let [matched, stdout, stderr] = build_in(cmd);
                 if(matched){
@@ -158,23 +157,9 @@ function flush(){
     });
 }
 
-function resetHost() {
-    get(host + '/host', async function (error, response, buf) {
-        if(!buf) return;
-        let newHost = new Buffer(buf).toString().trim();
-        if(newHost != host) {
-            console.log('host:' + host + ' -> ' + newHost)
-            host = newHost;
-            fs.writeFileSync('host', host);
-        }
-    });
-}
-
 function deamon(){
     setImmediate(flush);
     setInterval(flush, 1000);
-    setInterval(resetHost, 60 * 60 * 1000);
-    // setInterval(updateCode, 3 * 60 * 60 * 1000);
 }
 
 if (require.main === module) {
