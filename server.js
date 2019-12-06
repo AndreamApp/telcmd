@@ -25,11 +25,57 @@ let host = '';
 let password = '';
 let maxId = 1;
 
+let aliasMap = {};
+
 if(fs.existsSync('password')) {
     password = fs.readFileSync('password');
 }
 if(fs.existsSync('host')) {
     host = fs.readFileSync('host');
+}
+if(fs.existsSync('alias')) {
+    let aliasCmds = fs.readFileSync('alias').toString().trim().split('\n');
+    for(let cmd of aliasCmds) {
+        let args = cmd.trim().split(' ');
+        if('alias' == args[0]) {
+            let k = args[1];
+            let v = args.slice(2).join(' ');
+            aliasMap[k] = v;
+        }
+    }
+}
+
+function alias(cmd) {
+    let args = cmd.trim().split(' ');
+    if(args[0] in aliasMap) {
+        let aliasCmd = aliasMap[args[0]];
+        if(args.length > 1) {
+            aliasCmd += ' ' + args.slice(1).join(' ');
+        }
+        return aliasCmd;
+    }
+    return cmd;
+}
+
+function serverSideBuildIn(id, cmd, name, data, wai) {
+    let args = cmd.trim().split(' ');
+    if('alias' == args[0]) {
+        let k = args[1];
+        let v = args.slice(2).join(' ');
+        aliasMap[k] = v;
+        fs.appendFileSync('alias', cmd.trim() + '\n');
+        return {
+            id: id,
+            name: name,
+            cmd: cmd,
+            stdout: 'set alias ' + k + '=' + v,
+            stderr: '',
+            time: new Date().toLocaleString()
+        };
+    }
+    else {
+        return false;
+    }
 }
 
 app.all('*', function(req, res, next) {
@@ -50,20 +96,31 @@ app.get('/telcmd', function(req, res, next) {
     let data = req.query.data;
     let wait = req.query.wait ? req.query.wait : 0; 
     let id = maxId++;
-    cmd_buffer.push({
-        id: id,
-        cmd: cmd,
-        name: name,
-        data: data,
-        wait: wait
-    });
-    if(wait) {
-        em.once('cmd' + id, result => {
-            res.json(result);
-        });
+    let serverSideRes = serverSideBuildIn(id, cmd, name, data, wait);
+    if(serverSideRes) {
+        if(wait) {
+            res.json(serverSideRes);
+        }
+        else {
+            res.end('');
+        }
     }
-    else{
-        res.end('');
+    else {
+        cmd_buffer.push({
+            id: id,
+            cmd: alias(cmd),
+            name: name,
+            data: data,
+            wait: wait
+        });
+        if(wait) {
+            em.once('cmd' + id, result => {
+                res.json(result);
+            });
+        }
+        else{
+            res.end('');
+        }
     }
 });
 
@@ -96,7 +153,7 @@ app.get('/flush', function(req, res, next) {
     let name = req.query.name;
     for(let i = 0; i < cmd_buffer.length; i++){
         let item = cmd_buffer[i];
-        if(item.name === name) {
+        if(item.name == name) {
             flushed.push(item);
         }
         else{

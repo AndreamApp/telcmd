@@ -54,7 +54,7 @@ function result(id, cmd, stdout, stderr, callback) {
             cmd: cmd,
             stdout: stdout,
             stderr: stderr,
-            time: new Date().toISOString().replace(/T/, ' ').replace(/\..+/, '')
+            time: new Date().toLocaleString()
         },
         json: true
     }, callback);
