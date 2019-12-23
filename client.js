@@ -7,7 +7,7 @@ const fs = require('fs');
 let host = '';
 let name = 'pc';
 let lastFlushTime = 0;
-let flushPeriod = 30000;
+let flushPeriod = 3000;
 const DEBUG = true;
 
 function initHost() {
